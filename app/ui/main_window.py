@@ -34,7 +34,9 @@ class MainWindow(QMainWindow):
         self.pages.addWidget(BillingPage())
         self.pages.addWidget(HistoryPage())
         self.pages.addWidget(ProductsPage())
-        self.pages.addWidget(SettingsPage())
+        settings_page = SettingsPage()
+        settings_page.manage_products_requested.connect(lambda: self.navigate_to(2))
+        self.pages.addWidget(settings_page)
 
         sidebar = self._build_sidebar()
 

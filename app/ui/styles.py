@@ -98,6 +98,19 @@ QLineEdit:focus, QComboBox:focus {
     border: 1px solid #2f6f73;
 }
 
+QPlainTextEdit {
+    min-height: 96px;
+    padding: 8px 12px;
+    border-radius: 8px;
+    border: 1px solid #cfcac0;
+    background: #ffffff;
+    color: #202124;
+}
+
+QPlainTextEdit:focus {
+    border: 1px solid #2f6f73;
+}
+
 QCalendarWidget {
     background: #ffffff;
     border: 1px solid #dedbd2;

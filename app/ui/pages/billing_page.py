@@ -42,12 +42,12 @@ class BillTableWidget(QTableWidget):
 
 
 class BillingPage(QWidget):
-    def __init__(self) -> None:
+    def __init__(self, settings_repository: SettingsRepository | None = None) -> None:
         super().__init__()
         self.billing_service = BillingService()
         self.invoice_service = InvoiceService()
         self.product_service = ProductService()
-        self.settings_repository = SettingsRepository()
+        self.settings_repository = settings_repository or SettingsRepository()
         self.is_updating_table = False
 
         self.shop_name_label = QLabel("Billing POS")
