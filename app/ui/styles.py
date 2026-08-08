@@ -9,7 +9,7 @@ QMainWindow {
 QWidget {
     color: #202124;
     font-family: "Segoe UI", Arial, sans-serif;
-    font-size: 16px;
+    font-size: 12pt;
 }
 
 QScrollArea#BillingPageScroll,
@@ -96,6 +96,57 @@ QLineEdit, QComboBox {
 
 QLineEdit:focus, QComboBox:focus {
     border: 1px solid #2f6f73;
+}
+
+QCalendarWidget {
+    background: #ffffff;
+    border: 1px solid #dedbd2;
+    border-radius: 8px;
+    color: #202124;
+    selection-background-color: #2f6f73;
+    selection-color: #ffffff;
+}
+
+QCalendarWidget QWidget {
+    alternate-background-color: #ffffff;
+}
+
+QCalendarWidget QToolButton {
+    background: #ffffff;
+    color: #202124;
+    border: none;
+    border-radius: 6px;
+    padding: 6px 10px;
+}
+
+QCalendarWidget QToolButton:hover {
+    background: #f0ede6;
+}
+
+QCalendarWidget QSpinBox {
+    background: #ffffff;
+    color: #202124;
+    border: 1px solid #cfcac0;
+    border-radius: 6px;
+    padding: 2px 6px;
+}
+
+QCalendarWidget QAbstractItemView {
+    background: #ffffff;
+    alternate-background-color: #ffffff;
+    color: #202124;
+    selection-background-color: #2f6f73;
+    selection-color: #ffffff;
+    gridline-color: #ece8df;
+    outline: 0;
+}
+
+QCalendarWidget QHeaderView::section {
+    background: #eeeae1;
+    color: #202124;
+    border: none;
+    font-weight: 700;
+    min-height: 28px;
 }
 
 QTableWidget {

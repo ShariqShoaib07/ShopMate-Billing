@@ -364,7 +364,8 @@ class BillingPage(QWidget):
         header_height = self.bill_table.horizontalHeader().height()
         row_height = sum(self.bill_table.rowHeight(row) for row in range(self.bill_table.rowCount()))
         frame_width = self.bill_table.frameWidth() * 2
-        table_height = header_height + row_height + frame_width + 6
+        minimum_body_height = self.bill_table.verticalHeader().defaultSectionSize() * 2
+        table_height = header_height + max(row_height, minimum_body_height) + frame_width + 6
         self.bill_table.setFixedHeight(table_height)
 
     def _confirm(

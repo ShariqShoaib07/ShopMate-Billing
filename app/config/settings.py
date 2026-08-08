@@ -8,7 +8,7 @@ from app.utils.paths import project_root
 
 @dataclass(frozen=True)
 class AppSettings:
-    app_name: str = "Ladies Billing POS"
+    app_name: str = "ShopMate Billing"
     database_filename: str = "ladies_billing_pos.db"
 
     @property

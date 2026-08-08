@@ -194,6 +194,62 @@ class InvoiceRepository:
             items=[self._row_to_item(row) for row in item_rows],
         )
 
+    def search(
+        self,
+        search_text: str = "",
+        from_date: str | None = None,
+        to_date: str | None = None,
+    ) -> list[Invoice]:
+        clauses: list[str] = []
+        params: list[object] = []
+        text = search_text.strip()
+        if text:
+            clauses.append(
+                """
+                (
+                    invoice_number LIKE ?
+                    OR LOWER(COALESCE(customer_name, '')) LIKE LOWER(?)
+                    OR COALESCE(customer_mobile, '') LIKE ?
+                )
+                """
+            )
+            pattern = f"%{text}%"
+            params.extend([pattern, pattern, pattern])
+        if from_date:
+            clauses.append("invoice_date >= ?")
+            params.append(from_date)
+        if to_date:
+            clauses.append("invoice_date <= ?")
+            params.append(to_date)
+
+        where_sql = f"WHERE {' AND '.join(clauses)}" if clauses else ""
+        with get_connection(self.database_path) as connection:
+            rows = connection.execute(
+                f"""
+                SELECT id, invoice_number, customer_name, customer_mobile,
+                       invoice_date, invoice_time, total, created_at
+                FROM invoices
+                {where_sql}
+                ORDER BY invoice_date DESC, invoice_time DESC, id DESC
+                """,
+                tuple(params),
+            ).fetchall()
+
+        return [
+            Invoice(
+                id=int(row["id"]),
+                invoice_number=str(row["invoice_number"]),
+                customer_name=row["customer_name"],
+                customer_mobile=row["customer_mobile"],
+                invoice_date=str(row["invoice_date"]),
+                invoice_time=str(row["invoice_time"]),
+                total=Decimal(str(row["total"])),
+                created_at=str(row["created_at"]),
+                items=[],
+            )
+            for row in rows
+        ]
+
     @staticmethod
     def _next_invoice_number(connection: sqlite3.Connection) -> str:
         value = connection.execute(

@@ -228,3 +228,72 @@ def test_total_matches_current_items_after_add_remove_and_edit():
 
     expected_total = sum(item.quantity * item.rate for item in billing_service.items)
     assert billing_service.total == expected_total
+
+
+def test_sales_history_loads_saved_invoices_newest_first(tmp_path):
+    database_path = tmp_path / "test_pos.db"
+    initialize_database(database_path)
+    repo = InvoiceRepository(database_path)
+    old = Invoice(None, "10", None, None, "2026-08-08", "10:00:00", Decimal("100"), items=[
+        InvoiceItem(None, None, 1, 1, "Old", 1, Decimal("100"), Decimal("100"))
+    ])
+    new = Invoice(None, "11", None, None, "2026-08-09", "10:00:00", Decimal("200"), items=[
+        InvoiceItem(None, None, 1, 1, "New", 1, Decimal("200"), Decimal("200"))
+    ])
+    repo.add(old)
+    repo.add(new)
+
+    invoices = InvoiceService(database_path).search_invoices()
+
+    assert [invoice.invoice_number for invoice in invoices] == ["11", "10"]
+
+
+def test_sales_history_search_by_invoice_customer_and_mobile(tmp_path):
+    database_path = tmp_path / "test_pos.db"
+    initialize_database(database_path)
+    repo = InvoiceRepository(database_path)
+    repo.add(Invoice(None, "21", "Ayesha", "0300", "2026-08-09", "10:00:00", Decimal("100"), items=[
+        InvoiceItem(None, None, 1, 1, "Item", 1, Decimal("100"), Decimal("100"))
+    ]))
+    service = InvoiceService(database_path)
+
+    assert service.search_invoices("21")[0].customer_name == "Ayesha"
+    assert service.search_invoices("ayesha")[0].invoice_number == "21"
+    assert service.search_invoices("0300")[0].invoice_number == "21"
+
+
+def test_sales_history_date_filtering_and_invalid_range(tmp_path):
+    database_path = tmp_path / "test_pos.db"
+    initialize_database(database_path)
+    repo = InvoiceRepository(database_path)
+    for number, date in [("30", "2026-08-07"), ("31", "2026-08-08"), ("32", "2026-08-09")]:
+        repo.add(Invoice(None, number, None, None, date, "10:00:00", Decimal("100"), items=[
+            InvoiceItem(None, None, 1, 1, "Item", 1, Decimal("100"), Decimal("100"))
+        ]))
+    service = InvoiceService(database_path)
+
+    assert [invoice.invoice_number for invoice in service.search_invoices(from_date="2026-08-08")] == ["32", "31"]
+    assert [invoice.invoice_number for invoice in service.search_invoices(to_date="2026-08-08")] == ["31", "30"]
+    assert [invoice.invoice_number for invoice in service.search_invoices(from_date="2026-08-08", to_date="2026-08-08")] == ["31"]
+    with pytest.raises(InvoiceValidationError):
+        service.search_invoices(from_date="2026-08-09", to_date="2026-08-08")
+
+
+def test_invoice_details_use_saved_values_after_product_changes(tmp_path):
+    database_path = tmp_path / "test_pos.db"
+    initialize_database(database_path)
+    product_service = ProductService(database_path)
+    product = product_service.find_active_by_shortcut(1)
+    assert product is not None
+    billing = BillingService()
+    billing.add_product(product)
+    billing.update_description(0, "Saved Fancy")
+    billing.update_rate(0, "3300")
+    saved = InvoiceService(database_path).save_current_bill(billing.current_bill)
+
+    product_service.update_product(product.id or 0, "1", "Changed Fancy", "9999")
+    details = InvoiceService(database_path).get_invoice_by_number(saved.invoice_number)
+
+    assert details is not None
+    assert details.items[0].product_name == "Saved Fancy"
+    assert details.items[0].rate == Decimal("3300")

@@ -56,3 +56,13 @@ class InvoiceService:
 
     def get_invoice_by_number(self, invoice_number: str) -> Invoice | None:
         return self.repository.get_by_number(invoice_number)
+
+    def search_invoices(
+        self,
+        search_text: str = "",
+        from_date: str | None = None,
+        to_date: str | None = None,
+    ) -> list[Invoice]:
+        if from_date and to_date and from_date > to_date:
+            raise InvoiceValidationError("From date cannot be after To date.")
+        return self.repository.search(search_text, from_date, to_date)
