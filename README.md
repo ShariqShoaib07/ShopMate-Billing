@@ -357,7 +357,7 @@ Rupees in words
 Thank-you message
 Print preview
 
-STATUS: 🔵 PLANNED
+STATUS: ✅ COMPLETED
 
 Phase 9 — Thermal Printer
 

@@ -21,15 +21,16 @@ from PySide6.QtWidgets import (
 
 from app.models.invoice import Invoice
 from app.services.invoice_service import InvoiceService, InvoiceValidationError
-from app.services.print_service import PrintJob, PrintService
+from app.services.receipt_service import ReceiptService
 from app.utils.currency import format_rupees
+from app.ui.pages.receipt_preview_dialog import ReceiptPreviewDialog
 
 
 class HistoryPage(QWidget):
     def __init__(self) -> None:
         super().__init__()
         self.invoice_service = InvoiceService()
-        self.print_service = PrintService()
+        self.receipt_service = ReceiptService()
         self.invoices: list[Invoice] = []
 
         title = QLabel("Sales History")
@@ -78,9 +79,9 @@ class HistoryPage(QWidget):
         self.empty_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
 
         self.view_button = QPushButton("View Details")
-        self.reprint_button = QPushButton("Reprint")
+        self.reprint_button = QPushButton("Preview Receipt")
         self.view_button.clicked.connect(self.view_details)
-        self.reprint_button.clicked.connect(self.reprint_invoice)
+        self.reprint_button.clicked.connect(self.preview_receipt)
 
         filters = QHBoxLayout()
         filters.setSpacing(12)
@@ -140,16 +141,12 @@ class HistoryPage(QWidget):
             return
         InvoiceDetailsDialog(invoice, self).exec()
 
-    def reprint_invoice(self) -> None:
+    def preview_receipt(self) -> None:
         invoice = self._selected_invoice_with_items()
         if invoice is None:
             return
-        try:
-            self.print_service.print_receipt(
-                PrintJob(title=f"Invoice #{invoice.invoice_number}", content=self._invoice_text(invoice))
-            )
-        except NotImplementedError as exc:
-            QMessageBox.information(self, "Printing Not Ready", str(exc))
+        receipt = self.receipt_service.build_receipt(invoice)
+        ReceiptPreviewDialog(receipt, self).exec()
 
     def update_buttons(self) -> None:
         enabled = self._selected_invoice() is not None
